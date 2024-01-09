@@ -8,13 +8,15 @@ import { useState } from "react";
 
 const Home = () => {
   const { sendMessage, messages } = useSocket();
-  const [message, setMessage] = useState("");
+  const [text, setText] = useState("");
+
+  console.log(messages);
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
 
-    sendMessage(message);
-    setMessage("");
+    sendMessage(text);
+    setText("");
   };
 
   return (
@@ -22,8 +24,8 @@ const Home = () => {
       <form>
         <Input
           type="text"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
         />
         <Button type="submit" onClick={handleSubmit}>
           Send Message
@@ -31,9 +33,8 @@ const Home = () => {
       </form>
 
       <div>
-        {messages.map((e, i) => (
-          <li key={i}>{e}</li>
-        ))}
+        {messages.length > 0 &&
+          messages.map((e, i) => <li key={i}>{e?.text}</li>)}
       </div>
     </div>
   );

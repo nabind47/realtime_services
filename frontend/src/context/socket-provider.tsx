@@ -1,5 +1,6 @@
 "use client";
 
+import axios from "axios";
 import {
   createContext,
   useCallback,
@@ -31,6 +32,15 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const [socket, setSocket] = useState<Socket>();
   const [messages, setMessages] = useState<string[]>([]);
 
+  const fetchMessages = async () => {
+    try {
+      const response = await axios.get("http://localhost:8000/messages");
+      setMessages(response.data);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+    }
+  };
+
   const sendMessage: ISocketContext["sendMessage"] = useCallback(
     (msg) => {
       if (socket) {
@@ -46,17 +56,29 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    const _socket = io("http://localhost:8000");
-    _socket.on("message", onMessageRec);
+    const initializeSocket = async () => {
+      const _socket = io("http://localhost:8000");
+      _socket.on("message", onMessageRec);
 
-    setSocket(_socket);
-
-    return () => {
-      _socket.off("message", onMessageRec);
-      _socket.disconnect();
-      setSocket(undefined);
+      setSocket(_socket);
     };
+
+    initializeSocket();
+  }, [onMessageRec]);
+
+  // Fetch messages only once when the component mounts
+  useEffect(() => {
+    fetchMessages();
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (socket) {
+        socket.off("message", onMessageRec);
+        socket.disconnect();
+      }
+    };
+  }, [socket, onMessageRec]);
 
   return (
     <SocketContext.Provider value={{ sendMessage, messages }}>

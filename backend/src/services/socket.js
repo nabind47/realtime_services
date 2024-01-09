@@ -32,8 +32,7 @@ class SocketService {
     const io = this.io;
     io.on("connect", (socket) => {
       socket.on("event:message", async ({ message }) => {
-        // publish the message to redis
-        await pub.publish("MESSAGES", JSON.stringify({ message }));
+        await pub.publish("MESSAGES", JSON.stringify(message));
       });
     });
 
